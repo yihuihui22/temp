@@ -1,0 +1,90 @@
+package cn.kgc.curator.base;
+
+
+import org.apache.curator.RetryPolicy;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.CuratorFrameworkFactory;
+import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.ZooKeeper.States;
+
+public class CuratorBase {
+	
+	/** zookeeper地址 */  //可以直接写集群的几个地址都行
+	static final String CONNECT_ADDR = "192.168.10.71:2181";
+	/** session超时时间 */
+	static final int SESSION_OUTTIME = 5000;//ms 五秒
+	
+	public static void main(String[] args) throws Exception {
+		
+		//1 重试策略：初试时间为1s 重试10次
+		RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 10);
+		//2 通过工厂创建连接
+		CuratorFramework cf = CuratorFrameworkFactory.builder()
+					.connectString(CONNECT_ADDR)
+					.sessionTimeoutMs(SESSION_OUTTIME)
+					.retryPolicy(retryPolicy)
+					.build();
+		//3 开启连接
+		cf.start();
+		
+//		System.out.println(cf.getState());
+		
+		// 新加、删除
+//		cf.create().creatingParentsIfNeeded().withMode(CreateMode.PERSISTENT).forPath("/hello","world".getBytes());
+		//4 建立节点 指定节点类型（不加withMode默认为持久类型节点）、路径、数据内容
+		//5 删除节点
+//		cf.delete().guaranteed().deletingChildrenIfNeeded().forPath("/hello");
+
+		//获取节点
+//		String hello = new String(cf.getData().forPath("/hello"));
+//		System.out.println(hello);
+		
+		// 读取、修改
+
+		//创建节点
+//		cf.create().creatingParentsIfNeeded().withMode(CreateMode.PERSISTENT).forPath("/super/c1","c1内容".getBytes());
+//		cf.create().creatingParentsIfNeeded().withMode(CreateMode.PERSISTENT).forPath("/super/c2","c2内容".getBytes());
+		//读取节点
+		//修改节点
+		cf.setData().forPath("/hello", "修改c2内容".getBytes());
+//		String ret2 = new String(cf.getData().forPath("/super/c2"));
+//		System.out.println(ret2);
+
+		
+		// 绑定回调函数
+		/**
+		ExecutorService pool = Executors.newCachedThreadPool();
+		cf.create().creatingParentsIfNeeded().withMode(CreateMode.PERSISTENT)
+		.inBackground(new BackgroundCallback() {
+			@Override
+			public void processResult(CuratorFramework cf, CuratorEvent ce) throws Exception {
+				System.out.println("code:" + ce.getResultCode());
+				System.out.println("type:" + ce.getType());
+				System.out.println("线程为:" + Thread.currentThread().getName());
+			}
+		}, pool)
+		.forPath("/super/c3","c3内容".getBytes());
+		Thread.sleep(Integer.MAX_VALUE);
+		*/
+		
+		
+		// 读取子节点getChildren方法 和 判断节点是否存在checkExists方法
+		/**
+		List<String> list = cf.getChildren().forPath("/super");
+		for(String p : list){
+			System.out.println(p);
+		}
+		
+		Stat stat = cf.checkExists().forPath("/super/c3");
+		System.out.println(stat);
+		
+		Thread.sleep(2000);
+		cf.delete().guaranteed().deletingChildrenIfNeeded().forPath("/super");
+		*/
+		
+		
+		//cf.delete().guaranteed().deletingChildrenIfNeeded().forPath("/super");
+		
+	}
+}
